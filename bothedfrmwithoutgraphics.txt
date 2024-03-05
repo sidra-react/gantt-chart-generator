@@ -1,0 +1,259 @@
+#include <iostream>
+
+using namespace std;
+      
+int ttt;
+
+typedef struct {
+    int processnmber;        
+    int deadline;  
+    int realdeadline;
+    int burst_time; 
+    int remaining_time; 
+} processesedf;
+
+void deadlinechecker(processesedf* p, int n, int x) {
+    for(int i=0;i<n;i++) {
+        if(p[i].deadline==x+1){
+            p[i].remaining_time+=p[i].burst_time;
+            p[i].deadline=p[i].deadline+p[i].realdeadline;         
+        }
+    }
+}
+void deadlinechecker_rm(processesedf* p, int n, int x) {
+    for(int i=0;i<n;i++) {
+        if(p[i].deadline==x+1){
+            p[i].remaining_time=p[i].burst_time;
+            p[i].deadline=p[i].deadline+p[i].realdeadline;         
+        }
+    }
+}
+int priorityfinder(processesedf* p, int n) {
+    int min=1000;
+    int nn=-1;
+    for(int i=0;i<n;i++){
+        if(p[i].deadline<min&&p[i].remaining_time>0){
+            min=p[i].deadline;
+            nn=p[i].processnmber;
+        }
+    }
+    return nn;
+} 
+
+int pr(processesedf* p, int n, int j) {
+    int nn=-1;
+    int arr[50];
+    for(int i=0;i<n;i++){
+        arr[i]=p[i].deadline-j;
+        if(arr[i]<0){
+            arr[i]=arr[i]*-1;
+        }
+    }
+    int min=10000;
+    for(int i=0;i<n;i++){
+        if(arr[i]<min&&p[i].remaining_time>0){
+            min=arr[i];
+            nn=p[i].processnmber;
+        }
+    }
+    return nn;
+}
+
+
+int cmp_deadline(const void* p1, const void* p2) {
+    const processesedf* process1 = (const processesedf*)p1;
+    const processesedf* process2 = (const processesedf*)p2;
+    return process1->deadline - process2->deadline;
+}
+
+int lcm(int arr[], int n) {
+    int max = 0;
+    for(int i = 0; i < n; i++) {
+        if(arr[i] > max) {
+            max = arr[i];
+        }
+    }
+    int lcm = max;
+    while(1) {
+        int i;
+        for(i = 0; i < n; i++) {
+            if(arr[i] == 0 || lcm % arr[i] != 0) {
+                break;
+            }
+        }
+        if(i == n) {
+            return lcm;
+        }
+        lcm += max;
+    }
+}
+
+
+int* edf_scheduler(processesedf processes[], int n, int t) {
+    int current_time = 0;
+    int i, j;
+    int flag=0;
+
+    
+    qsort(processes, n, sizeof(processesedf), cmp_deadline);
+
+  
+    int total_execution_time = t;
+
+    // Allocate Gantt chart
+    int* gantt = new int[total_execution_time];
+
+    // Execute processes in order of earliest deadline first
+    for(j=0;j< total_execution_time; j++){
+        gantt[j]=0;
+    }
+    for (j = 0; j < total_execution_time; j++) {
+        // Execute process
+        i=0;
+      
+while ( i < n) {
+      
+       int nn=pr(processes,n,j);
+      
+if( processes[i].processnmber==nn){
+  
+            
+            gantt[j]= processes[i].processnmber;
+            // printf("--%d",processes[i].processnmber);
+            processes[i].remaining_time--;
+          
+              flag=1;
+          break;
+            
+        }
+    
+        // Check if process missed deadline
+       // if (current_time > processes[i].deadline) {
+         //   printf("Process %d missed deadline!\n", processes[i]//.processnmber);
+    //    }
+       //  if(processes[i].deadline==j+1||(j+1)%processes[i].deadline==0){
+    //processes[i].remaining_time+=processes[i].burst_time;
+            
+      //  }
+   
+              i++;   
+       }
+          
+      
+      deadlinechecker(processes,n,j);
+   }
+
+    // Print Gantt chart
+   cout<<"Gantt chart:"<<endl;
+    
+    for (i = 0; i < total_execution_time; i++) {
+        if(gantt[i]==0){
+            cout<<"| ";
+            //   printf("--%d",i);
+        }else{
+       cout<<"|p"<< gantt[i];
+           
+        }
+    } cout<<"|";
+    
+cout<<endl;
+ttt=total_execution_time;
+    
+   return gantt;
+}
+int* rm_scheduler(processesedf processes[], int n, int t) {
+    int current_time = 0;
+    int i, j;
+    int flag=0;
+
+    
+    qsort(processes, n, sizeof(processesedf), cmp_deadline);
+
+  
+    int total_execution_time = t;
+
+    // Allocate Gantt chart
+    int* gantt = new int[total_execution_time];
+
+    // Execute processes in order of earliest deadline first
+    for(j=0;j< total_execution_time; j++){
+        gantt[j]=0;
+    }
+    for (j = 0; j < total_execution_time; j++) {
+        // Execute process
+        i=0;
+      
+while ( i < n) {
+      
+       int nn=priorityfinder(processes,n);
+      
+if( processes[i].processnmber==nn){
+  
+            
+            gantt[j]= processes[i].processnmber;
+            // printf("--%d",processes[i].processnmber);
+            processes[i].remaining_time--;
+          
+              flag=1;
+          break;
+            
+        }
+    
+        // Check if process missed deadline
+       // if (current_time > processes[i].deadline) {
+         //   printf("Process %d missed deadline!\n", processes[i]//.processnmber);
+    //    }
+       //  if(processes[i].deadline==j+1||(j+1)%processes[i].deadline==0){
+    //processes[i].remaining_time+=processes[i].burst_time;
+            
+      //  }
+   
+              i++;   
+       }
+          
+      
+      deadlinechecker_rm(processes,n,j);
+   }
+
+    // Print Gantt chart
+   cout<<"Gantt chart:"<<endl;
+    
+    for (i = 0; i < total_execution_time; i++) {
+        if(gantt[i]==0){
+            cout<<"| ";
+            //   printf("--%d",i);
+        }else{
+       cout<<"|p"<< gantt[i];
+           
+        }
+    } cout<<"|";
+    
+cout<<endl;
+ttt=total_execution_time;
+    
+   return gantt;
+}
+
+int main() {
+    // Example usage
+    processesedf processes[] = {
+        {1, 20,20, 3, 3},
+        {2,5,5, 2, 2},
+      {3,10,10, 2, 2}
+    };
+    int n = sizeof(processes) / sizeof(processesedf);
+int periods[n];
+    for(int i = 0; i < n; i++) {
+        periods[i] = processes[i].deadline;
+    }
+  int lcmPeriods = lcm(periods, n);
+cout<<"RM"<<endl;
+    rm_scheduler(processes,n,20);
+    for(int k=0;k<n;k++){
+       processes[k].remaining_time= processes[k].burst_time;
+        processes[k].deadline= processes[k].realdeadline;
+    }
+    cout<<"EDF"<<endl;
+    edf_scheduler(processes,n,20);
+    return 0;
+}

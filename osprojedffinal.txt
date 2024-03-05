@@ -1,0 +1,362 @@
+#include <iostream>
+#include <algorithm>
+#include <cmath>
+#include <graphics.h>
+using namespace std;
+const int MAX_WIDTH = 800;     
+const int MAX_HEIGHT = 600;    
+const int BAR_WIDTH = 40;       
+const int BAR_HEIGHT = 50;      
+const int BAR_MARGIN = 10;     
+const int MAX_PROCESSES_PER_LINE = 12; 
+const int LINE_SKIP = 2;       
+int ttt;
+
+typedef struct {
+    int processnmber;        
+    int deadline;  
+    int realdeadline;
+    int burst_time; 
+    int remaining_time; 
+} processesedf;
+bool checkscheduling(processesedf *processes,int n)    //to check scheduling
+{
+    
+    float totaltime = 0;
+
+    // calculate total utilization
+    for (int i = 0; i < n; i++) 
+    {
+        totaltime += float(processes[i].burst_time )/ float(processes[i].deadline);
+    }
+
+    // check if totaltime is less than or equal to n(2^(1/n)-1)   
+   // double maxtime = n * (pow(2.0, 1.0/n) - 1);
+    cout<<"iii"<<totaltime;
+    if (totaltime <= 1)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+   
+}
+
+void deadlinechecker(processesedf* p, int n, int x) {
+    for(int i=0;i<n;i++) {
+        if(p[i].deadline==x+1){
+            p[i].remaining_time+=p[i].burst_time;
+            p[i].deadline=p[i].deadline+p[i].realdeadline;         
+        }
+    }
+}
+
+int priorityfinder(processesedf* p, int n) {
+    int min=1000;
+    int nn=-1;
+    for(int i=0;i<n;i++){
+        if(p[i].deadline<min&&p[i].remaining_time>0){
+            min=p[i].deadline;
+            nn=p[i].processnmber;
+        }
+    }
+    return nn;
+} 
+
+int pr(processesedf* p, int n, int j) {
+    int nn=-1;
+    int arr[50];
+    for(int i=0;i<n;i++){
+        arr[i]=p[i].deadline-j;
+        if(arr[i]<0){
+            arr[i]=arr[i]*-1;
+        }
+    }
+    int min=10000;
+    for(int i=0;i<n;i++){
+        if(arr[i]<min&&p[i].remaining_time>0){
+            min=arr[i];
+            nn=p[i].processnmber;
+        }
+    }
+    return nn;
+}
+
+
+int cmp_deadline(const void* p1, const void* p2) {
+    const processesedf* process1 = (const processesedf*)p1;
+    const processesedf* process2 = (const processesedf*)p2;
+    return process1->deadline - process2->deadline;
+}
+
+int lcm(int arr[], int n) {
+    int max = 0;
+    for(int i = 0; i < n; i++) {
+        if(arr[i] > max) {
+            max = arr[i];
+        }
+    }
+    int lcm = max;
+    while(1) {
+        int i;
+        for(i = 0; i < n; i++) {
+            if(arr[i] == 0 || lcm % arr[i] != 0) {
+                break;
+            }
+        }
+        if(i == n) {
+            return lcm;
+        }
+        lcm += max;
+    }
+}
+
+
+int* edf_scheduler(processesedf processes[], int n, int t) {
+    int current_time = 0;
+    int i, j;
+    int flag=0;
+
+    
+    qsort(processes, n, sizeof(processesedf), cmp_deadline);
+
+  
+    int total_execution_time = t;
+
+    // Allocate Gantt chart
+    int* gantt = new int[total_execution_time];
+
+    // Execute processes in order of earliest deadline first
+    for(j=0;j< total_execution_time; j++){
+        gantt[j]=0;
+    }
+    for (j = 0; j < total_execution_time; j++) {
+        // Execute process
+        i=0;
+      
+while ( i < n) {
+      
+       int nn=pr(processes,n,j);
+      
+if( processes[i].processnmber==nn){
+  
+            
+            gantt[j]= processes[i].processnmber;
+            // printf("--%d",processes[i].processnmber);
+            processes[i].remaining_time--;
+          
+              flag=1;
+          break;
+            
+        }
+    
+        // Check if process missed deadline
+       // if (current_time > processes[i].deadline) {
+         //   printf("Process %d missed deadline!\n", processes[i]//.processnmber);
+    //    }
+       //  if(processes[i].deadline==j+1||(j+1)%processes[i].deadline==0){
+    //processes[i].remaining_time+=processes[i].burst_time;
+            
+      //  }
+   
+              i++;   
+       }
+          
+      
+      deadlinechecker(processes,n,j);
+   }
+
+    // Print Gantt chart
+   cout<<"Gantt chart:"<<endl;
+    
+    for (i = 0; i < total_execution_time; i++) {
+        if(gantt[i]==0){
+            cout<<"| ";
+            //   printf("--%d",i);
+        }else{
+       cout<<"|p"<< gantt[i];
+           
+        }
+    } cout<<"|";
+    
+cout<<endl;
+ttt=total_execution_time;
+    
+   return gantt;
+}
+
+int main() {
+    // Example usage
+    processesedf processes[] = {
+        {1, 3,3, 1, 1},
+        {2,5,5, 1, 1}
+    
+    };
+    //int n = sizeof(processes) / sizeof(processesedf);
+int periods[n];
+    for(int i = 0; i < n; i++) {
+        periods[i] = processes[i].deadline;
+    }
+  int lcmPeriods = lcm(periods, n);
+    int gd = DETECT, gm;
+  bool f=checkscheduling(processes,n);
+if(f==true){
+	cout << "Processes are schedulable, no tension" << endl;
+}
+else{
+	 cout << "Processes not schedulable" << endl;
+}
+   
+
+   
+    
+    initwindow(800, 500);
+
+   
+    setfillstyle(SOLID_FILL, GREEN);
+    bar(0, 0, 10, 500);
+    bar(0, 0, 800, 10);
+    bar(790, 0, 800, 500);
+    bar(0, 490, 800, 500);
+
+    // Draw alternating red and blue boxes inside the boundary
+    int x = 10;
+    for (int i = 0; i < 19; i++) {
+        if (i % 2 == 0) {
+            setfillstyle(4, 5);
+        } else {
+            setfillstyle(1, RED);
+        }
+        bar(x, 10, x+40, 490);
+        x += 40;
+    }
+
+    
+ 
+    setcolor(GREEN);
+    setfillstyle(SOLID_FILL, 0);
+    rectangle(150, 150, 550, 250);
+    floodfill(152, 152, GREEN);
+    
+    settextstyle(DEFAULT_FONT, HORIZ_DIR, 4);
+    setcolor(GREEN);
+    outtextxy(200, 200, "SCHEDULER");
+
+  getch();
+  
+closegraph();
+initwindow(MAX_WIDTH, 500);
+    setfillstyle(10,5);
+   bar(0, 0,800, 800);
+    
+   setfillstyle(8, RED);
+settextstyle(3, HORIZ_DIR, 2);
+    setcolor(GREEN);
+    outtextxy(10, 10, "Checking if processes are schedulable...");
+    delay(600);
+  
+    if(f==false){
+
+settextstyle(3, HORIZ_DIR, 2);
+    setcolor(GREEN);
+	  outtextxy(10, 200, "0  Processes not schedulable:/");
+	 cout << "0 Processes not schedulable" << endl;
+	 getch();
+
+   
+}
+else{
+	
+   settextstyle(3, HORIZ_DIR, 2);
+    setcolor(GREEN);
+    outtextxy(10, 200, "0 Processes are schedulable, no tension:)");
+  
+    outtextxy(10, 250, "0 Press any key to get gantt chart");
+    
+   
+    
+	cout << "0 Processes are schedulable, no tension" << endl;
+	 getch();
+     
+
+ 
+
+     int *arr =edf_scheduler(processes, n,lcmPeriods);;
+	    int n11=ttt;
+
+    initwindow(MAX_WIDTH, MAX_HEIGHT);
+    setfillstyle(10,8);
+   bar(0, 0,800, 800);
+    
+   setfillstyle(SOLID_FILL, WHITE);
+   // Set the text style and color
+    settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
+    setcolor(WHITE);
+
+    // Draw the bars for each process
+    x = 50; 
+	int y = 100;
+    int current_line_processes = 0;
+    for (int i = 0; i < n11; i++) {
+delay(500);
+        // Draw the start and end times for the current process
+        char start_time[10], end_time[10];
+        sprintf(start_time, "%d", i);
+        sprintf(end_time, "%d", i + 1);
+
+        // Draw the time unit and skip lines if needed
+        if (current_line_processes == 0) {
+            outtextxy(x + 10, y + BAR_HEIGHT + 5, start_time);
+        }
+        else if (current_line_processes == MAX_PROCESSES_PER_LINE) {
+            current_line_processes = 0;
+            y += BAR_HEIGHT + 30 + LINE_SKIP * BAR_HEIGHT;
+            x = 50;
+        }
+
+if(arr[i]==0){
+	setfillstyle(SOLID_FILL, WHITE);
+    outtextxy(x + 10, y - 25, "I");
+}else
+       if (arr[i] == 1) {
+    setfillstyle(SOLID_FILL, RED);
+    outtextxy(x + 10, y - 25, "P1");
+}
+else if (arr[i] == 2) {
+    setfillstyle(SOLID_FILL, GREEN);
+    outtextxy(x + 10, y - 25, "P2");
+}
+else if (arr[i] == 3) {
+    setfillstyle(SOLID_FILL, BLUE);
+    outtextxy(x + 10, y - 25, "P3");
+}
+else {
+    setfillstyle(SOLID_FILL, YELLOW);
+    char process_num[10];
+    sprintf(process_num, "P%d", arr[i]);
+    outtextxy(x + 10, y - 25, process_num);
+}
+
+        bar(x, y, x + BAR_WIDTH, y + BAR_HEIGHT);
+
+        
+        outtextxy(x + BAR_WIDTH - 15, y + BAR_HEIGHT + 5, end_time);
+
+        
+        x += BAR_WIDTH + BAR_MARGIN;
+        current_line_processes++;
+    }
+      
+ settextstyle(9, HORIZ_DIR, 4);
+
+    setcolor(12);
+     setbkcolor(YELLOW);
+    outtextxy(50, 5, "EARLIEST DEADLINE FIRST");
+
+    getch();
+    closegraph();
+}
+    return 0;
+}
